@@ -5,6 +5,7 @@ const getProjects = async (req, res) => {
   try {
     const projects = await Project.find()
       .populate("client", "name email phone")
+      .populate("designer", "name email")
       .populate("supervisor", "name email")
       .populate("workers", "name email role");
     res.json(projects);
@@ -18,6 +19,7 @@ const getProject = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
       .populate("client", "name email phone")
+      .populate("designer", "name email")
       .populate("supervisor", "name email")
       .populate("workers", "name email role specializations");
     if (!project) return res.status(404).json({ message: "Project not found" });

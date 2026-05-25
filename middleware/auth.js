@@ -34,7 +34,11 @@ const hasPermission = (permission) => {
     if (!req.user || !req.user.role) {
       return res.status(403).json({ message: "No role assigned" });
     }
-    if (!req.user.role.permissions.includes(permission) && req.user.role.name !== "Admin") {
+    const userPermissions = req.user.role.permissions || [];
+    const hasAll = userPermissions.includes("all");
+    const roleName = req.user.role.name.toLowerCase();
+
+    if (!hasAll && !userPermissions.includes(permission) && roleName !== "admin") {
       return res.status(403).json({ message: `Permission '${permission}' required` });
     }
     next();

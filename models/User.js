@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
     },
     phone: { type: String },
     address: { type: String },
-    experience: { type: String },
+    experience: { type: Number },
     specializations: [{ type: String }],
     team: { type: String, enum: ["Office", "Site"] },
     rate: { type: String },

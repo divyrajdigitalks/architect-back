@@ -7,11 +7,11 @@ const generateToken = (id) =>
 // POST /api/auth/register
 const register = async (req, res) => {
   try {
-    const { name, email, password, role, phone, address, specializations, team, rate, joinDate } = req.body;
+    const { name, email, password, role, phone, address, specializations, team, rate, joinDate, experience } = req.body;
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ message: "User already exists" });
 
-    const user = await User.create({ name, email, password, role, phone, address, specializations, team, rate, joinDate });
+    const user = await User.create({ name, email, password, role, phone, address, specializations, team, rate, joinDate, experience });
     const populatedUser = await user.populate("role");
     res.status(201).json({
       _id: populatedUser._id,
