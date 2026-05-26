@@ -6,7 +6,11 @@ const getUsers = async (req, res) => {
     const filter = {};
     if (role) filter.role = role;
     if (team) filter.team = team;
-    const users = await User.find(filter).select("-password").populate("assignedProjects", "name status").populate("role", "name permissions");
+    const users = await User.find(filter)
+      .select("-password")
+      .populate("assignedProjects", "name status")
+      .populate("role", "name permissions")
+      .sort({ createdAt: -1 });
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -6,7 +6,8 @@ const getSiteUpdates = async (req, res) => {
     const filter = project ? { project } : {};
     const updates = await SiteUpdate.find(filter)
       .populate("project", "name")
-      .populate("postedBy", "name");
+      .populate("postedBy", "name")
+      .sort({ createdAt: -1 });
     res.json(updates);
   } catch (err) {
     res.status(500).json({ message: err.message });

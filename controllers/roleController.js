@@ -2,7 +2,7 @@ const Role = require("../models/Role");
 
 const getRoles = async (req, res) => {
   try {
-    const roles = await Role.find();
+    const roles = await Role.find().sort({ createdAt: -1 });
     res.json(roles);
   } catch (err) {
     res.status(500).json({ message: err.message });

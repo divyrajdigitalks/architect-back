@@ -7,7 +7,8 @@ const getProjects = async (req, res) => {
       .populate("client", "name email phone")
       .populate("designer", "name email")
       .populate("supervisor", "name email")
-      .populate("workers", "name email role");
+      .populate("workers", "name email role")
+      .sort({ createdAt: -1 });
     res.json(projects);
   } catch (err) {
     res.status(500).json({ message: err.message });

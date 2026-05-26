@@ -7,7 +7,8 @@ const getSiteTasks = async (req, res) => {
     const filter = project ? { project } : {};
     const tasks = await SiteTask.find(filter)
       .populate("project", "name")
-      .populate("assignedTo", "name email");
+      .populate("assignedTo", "name email")
+      .sort({ createdAt: -1 });
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ message: err.message });

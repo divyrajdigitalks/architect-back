@@ -7,7 +7,8 @@ const getSitePhotos = async (req, res) => {
     const filter = project ? { project } : {};
     const photos = await SitePhoto.find(filter)
       .populate("project", "name")
-      .populate("uploadedBy", "name");
+      .populate("uploadedBy", "name")
+      .sort({ createdAt: -1 });
     res.json(photos);
   } catch (err) {
     res.status(500).json({ message: err.message });
