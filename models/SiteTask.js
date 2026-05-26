@@ -11,6 +11,7 @@ const siteTaskSchema = new mongoose.Schema(
     startDate: { type: String },
     endDate: { type: String },
     notes: { type: String },
+    images: [{ type: String }],
   },
   { timestamps: true }
 );

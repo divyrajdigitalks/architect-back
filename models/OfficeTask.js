@@ -11,6 +11,7 @@ const officeTaskSchema = new mongoose.Schema(
     deadline: { type: String },
     priority: { type: String, enum: ["Low", "Medium", "High", "Critical"], default: "Medium" },
     notes: { type: String },
+    images: [{ type: String }],
   },
   { timestamps: true }
 );
