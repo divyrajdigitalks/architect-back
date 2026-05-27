@@ -14,6 +14,12 @@ const attendanceSchema = new mongoose.Schema(
     ],
     totalMinutes: { type: Number, default: 0 },
     notes: { type: String },
+    overtime: {
+      type: { type: String, enum: ["hourly", "fixed"], default: "hourly" },
+      hours: { type: Number, default: 0 },
+      rate: { type: Number, default: 0 },
+      amount: { type: Number, default: 0 }
+    },
     isManual: { type: Boolean, default: false },
   },
   { timestamps: true }
