@@ -2,7 +2,7 @@ const Client = require("../models/Client");
 
 const getClients = async (req, res) => {
   try {
-    const clients = await Client.find().populate("projects", "name status progress");
+    const clients = await Client.find().populate("projects", "name status progress").sort({ createdAt: -1 });
     res.json(clients);
   } catch (err) {
     res.status(500).json({ message: err.message });

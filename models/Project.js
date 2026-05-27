@@ -14,9 +14,9 @@ const projectSchema = new mongoose.Schema(
     expectedCompletion: { type: String },
     status: { type: String, enum: ["Planned", "In Progress", "Completed", "On Hold"], default: "Planned" },
     progress: { type: Number, default: 0, min: 0, max: 100 },
-    budget: { type: String }, // Storing as string to match frontend 'e.g., $850,000'
-    received: { type: String, default: "0" },
-    pending: { type: String, default: "0" },
+    budget: { type: Number, default: 0 }, 
+    received: { type: Number, default: 0 },
+    pending: { type: Number, default: 0 },
     designer: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     supervisor: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     workers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
