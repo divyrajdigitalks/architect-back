@@ -1,39 +1,109 @@
 const Attendance = require("../models/Attendance");
+const User = require("../models/User");
 
 const getAttendance = async (req, res) => {
   try {
-    const { project, worker, date } = req.query;
+    const { user, date, startDate, endDate, team } = req.query;
     const filter = {};
-    if (project) filter.project = project;
-    if (worker) filter.worker = worker;
+    if (user) filter.user = user;
     if (date) filter.date = date;
-    const records = await Attendance.find(filter)
-      .populate("worker", "name role")
-      .populate("project", "name");
+    if (startDate && endDate) {
+      filter.date = { $gte: startDate, $lte: endDate };
+    }
+
+    let records = await Attendance.find(filter)
+      .populate({
+        path: "user",
+        select: "name role team payoutType salaryAmount config",
+        populate: { path: "role", select: "name" }
+      })
+      .sort({ date: -1 });
+
+    if (team) {
+      records = records.filter(r => r.user && r.user.team === team);
+    }
+
     res.json(records);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-const markAttendance = async (req, res) => {
+const checkIn = async (req, res) => {
   try {
-    const { worker, project, date } = req.body;
-    const existing = await Attendance.findOne({ worker, project, date });
-    if (existing) {
-      const updated = await Attendance.findByIdAndUpdate(existing._id, req.body, { new: true });
-      return res.json(updated);
+    const userId = req.user.id;
+    const today = new Date().toISOString().split("T")[0];
+    
+    let attendance = await Attendance.findOne({ user: userId, date: today });
+    
+    if (!attendance) {
+      attendance = new Attendance({
+        user: userId,
+        date: today,
+        status: "Present",
+        logs: [{ checkIn: new Date() }]
+      });
+    } else {
+      // Check if last log is not closed
+      const lastLog = attendance.logs[attendance.logs.length - 1];
+      if (lastLog && !lastLog.checkOut) {
+        return res.status(400).json({ message: "Already checked in" });
+      }
+      attendance.logs.push({ checkIn: new Date() });
+      attendance.status = "Present";
     }
-    const record = await Attendance.create(req.body);
-    res.status(201).json(record);
+    
+    await attendance.save();
+    res.json(attendance);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const checkOut = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const today = new Date().toISOString().split("T")[0];
+    
+    const attendance = await Attendance.findOne({ user: userId, date: today });
+    if (!attendance) return res.status(404).json({ message: "No attendance record for today" });
+    
+    const lastLog = attendance.logs[attendance.logs.length - 1];
+    if (!lastLog || lastLog.checkOut) {
+      return res.status(400).json({ message: "Not checked in or already checked out" });
+    }
+    
+    lastLog.checkOut = new Date();
+    lastLog.duration = Math.round((lastLog.checkOut - lastLog.checkIn) / (1000 * 60)); // minutes
+    
+    attendance.totalMinutes = attendance.logs.reduce((sum, log) => sum + (log.duration || 0), 0);
+    
+    await attendance.save();
+    res.json(attendance);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 const updateAttendance = async (req, res) => {
   try {
-    const record = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { id } = req.params;
+    let record;
+    
+    if (id === "new") {
+      const { user, date } = req.body;
+      record = await Attendance.findOne({ user, date });
+      if (record) {
+        Object.assign(record, { ...req.body, isManual: true });
+        await record.save();
+      } else {
+        record = new Attendance({ ...req.body, isManual: true });
+        await record.save();
+      }
+    } else {
+      record = await Attendance.findByIdAndUpdate(id, { ...req.body, isManual: true }, { new: true });
+    }
+
     if (!record) return res.status(404).json({ message: "Attendance record not found" });
     res.json(record);
   } catch (err) {
@@ -41,14 +111,25 @@ const updateAttendance = async (req, res) => {
   }
 };
 
-const deleteAttendance = async (req, res) => {
+const getMyStatus = async (req, res) => {
   try {
-    const record = await Attendance.findByIdAndDelete(req.params.id);
-    if (!record) return res.status(404).json({ message: "Attendance record not found" });
-    res.json({ message: "Attendance record deleted" });
+    const userId = req.user.id;
+    // Find the most recent record with an open log OR today's record
+    const today = new Date().toISOString().split("T")[0];
+    let attendance = await Attendance.findOne({ user: userId, date: today });
+    
+    if (!attendance) {
+      // Look for any open log from previous days (edge case)
+      attendance = await Attendance.findOne({ 
+        user: userId, 
+        "logs.checkOut": { $exists: false } 
+      }).sort({ date: -1 });
+    }
+    
+    res.json(attendance);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-module.exports = { getAttendance, markAttendance, updateAttendance, deleteAttendance };
+module.exports = { getAttendance, checkIn, checkOut, updateAttendance, getMyStatus };

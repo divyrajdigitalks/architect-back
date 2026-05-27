@@ -2,13 +2,19 @@ const mongoose = require("mongoose");
 
 const attendanceSchema = new mongoose.Schema(
   {
-    worker: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    project: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
-    date: { type: String, required: true },
-    status: { type: String, enum: ["Present", "Absent", "Half Day", "Leave"], default: "Present" },
-    checkIn: { type: String },
-    checkOut: { type: String },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    date: { type: String, required: true }, // Format: YYYY-MM-DD
+    status: { type: String, enum: ["Present", "Absent", "Half Day", "Leave", "Weekly Off", "Overtime"], default: "Absent" },
+    logs: [
+      {
+        checkIn: { type: Date },
+        checkOut: { type: Date },
+        duration: { type: Number, default: 0 }, // in minutes
+      },
+    ],
+    totalMinutes: { type: Number, default: 0 },
     notes: { type: String },
+    isManual: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

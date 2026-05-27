@@ -2,10 +2,12 @@ const User = require("../models/User");
 
 const getUsers = async (req, res) => {
   try {
-    const { role, team } = req.query;
+    const { role, team, trackAttendance } = req.query;
     const filter = {};
     if (role) filter.role = role;
     if (team) filter.team = team;
+    if (trackAttendance !== undefined) filter.trackAttendance = trackAttendance === "true";
+    
     const users = await User.find(filter)
       .select("-password")
       .populate("assignedProjects", "name status")

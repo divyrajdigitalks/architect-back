@@ -17,6 +17,13 @@ const userSchema = new mongoose.Schema(
     specializations: [{ type: String }],
     team: { type: String, enum: ["Office", "Site"] },
     rate: { type: String },
+    payoutType: { type: String, enum: ["Monthly", "Daily", "Hourly"], default: "Monthly" },
+    salaryAmount: { type: Number, default: 0 },
+    config: {
+      hoursPerDay: { type: Number, default: 8 },
+      daysPerMonth: { type: Number, default: 26 }
+    },
+    trackAttendance: { type: Boolean, default: false },
     joinDate: { type: String },
     assignedProjects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project" }],
     isActive: { type: Boolean, default: true },

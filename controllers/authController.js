@@ -17,7 +17,10 @@ const register = async (req, res) => {
       _id: populatedUser._id,
       name: populatedUser.name,
       email: populatedUser.email,
-      role: populatedUser.role,
+      role: populatedUser.role.name,
+      team: populatedUser.team,
+      trackAttendance: populatedUser.trackAttendance,
+      config: populatedUser.config,
       token: generateToken(populatedUser._id),
     });
   } catch (err) {
@@ -37,7 +40,10 @@ const login = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role,
+      role: user.role.name,
+      team: user.team,
+      trackAttendance: user.trackAttendance,
+      config: user.config,
       token: generateToken(user._id),
     });
   } catch (err) {
