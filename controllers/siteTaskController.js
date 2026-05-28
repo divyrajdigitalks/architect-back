@@ -78,4 +78,17 @@ const uploadSiteTaskImages = async (req, res) => {
   }
 };
 
-module.exports = { getSiteTasks, getSiteTask, createSiteTask, updateSiteTask, deleteSiteTask, uploadSiteTaskImages };
+const deleteSiteTaskImage = async (req, res) => {
+  try {
+    const task = await SiteTask.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: "Site Task not found" });
+    const { imageUrl } = req.body;
+    task.images = (task.images || []).filter(img => img !== imageUrl);
+    await task.save();
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { getSiteTasks, getSiteTask, createSiteTask, updateSiteTask, deleteSiteTask, uploadSiteTaskImages, deleteSiteTaskImage };

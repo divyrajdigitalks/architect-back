@@ -78,4 +78,17 @@ const uploadOfficeTaskImages = async (req, res) => {
   }
 };
 
-module.exports = { getOfficeTasks, getOfficeTask, createOfficeTask, updateOfficeTask, deleteOfficeTask, uploadOfficeTaskImages };
+const deleteOfficeTaskImage = async (req, res) => {
+  try {
+    const task = await OfficeTask.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: "Office Task not found" });
+    const { imageUrl } = req.body;
+    task.images = (task.images || []).filter(img => img !== imageUrl);
+    await task.save();
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { getOfficeTasks, getOfficeTask, createOfficeTask, updateOfficeTask, deleteOfficeTask, uploadOfficeTaskImages, deleteOfficeTaskImage };
