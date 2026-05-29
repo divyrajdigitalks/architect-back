@@ -1,5 +1,6 @@
 const OfficeTask = require("../models/OfficeTask");
 const { uploadToExternalAPI } = require("../middleware/upload");
+const { recalculateProjectProgress } = require("../utils/projectProgress");
 
 const getOfficeTasks = async (req, res) => {
   try {
@@ -8,8 +9,19 @@ const getOfficeTasks = async (req, res) => {
     const tasks = await OfficeTask.find(filter)
       .populate("project", "name")
       .populate("assignedTo", "name email")
+      .lean()
       .sort({ createdAt: -1 });
-    res.json(tasks);
+
+    const mappedTasks = tasks.map(task => {
+      if (task.progress === 0 || task.progress == null) {
+        if (task.status === 'Completed') task.progress = 100;
+        else if (task.status === 'In Progress') task.progress = 50;
+        else task.progress = 0;
+      }
+      return task;
+    });
+
+    res.json(mappedTasks);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -29,7 +41,13 @@ const getOfficeTask = async (req, res) => {
 
 const createOfficeTask = async (req, res) => {
   try {
+    if (req.body.status) {
+      if (req.body.status === 'Completed') req.body.progress = 100;
+      else if (req.body.status === 'In Progress') req.body.progress = 50;
+      else if (req.body.status === 'Pending') req.body.progress = 0;
+    }
     const task = await OfficeTask.create(req.body);
+    await recalculateProjectProgress(task.project);
     res.status(201).json(task);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -38,8 +56,14 @@ const createOfficeTask = async (req, res) => {
 
 const updateOfficeTask = async (req, res) => {
   try {
+    if (req.body.status) {
+      if (req.body.status === 'Completed') req.body.progress = 100;
+      else if (req.body.status === 'In Progress') req.body.progress = 50;
+      else if (req.body.status === 'Pending') req.body.progress = 0;
+    }
     const task = await OfficeTask.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!task) return res.status(404).json({ message: "Office Task not found" });
+    await recalculateProjectProgress(task.project);
     res.json(task);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -50,6 +74,7 @@ const deleteOfficeTask = async (req, res) => {
   try {
     const task = await OfficeTask.findByIdAndDelete(req.params.id);
     if (!task) return res.status(404).json({ message: "Office Task not found" });
+    await recalculateProjectProgress(task.project);
     res.json({ message: "Office Task deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
