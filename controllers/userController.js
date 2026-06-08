@@ -7,7 +7,7 @@ const getUsers = async (req, res) => {
     if (role) filter.role = role;
     if (team) filter.team = team;
     if (trackAttendance !== undefined) filter.trackAttendance = trackAttendance === "true";
-    
+
     const users = await User.find(filter)
       .select("-password")
       .populate("assignedProjects", "name status")

@@ -12,6 +12,7 @@ const siteTaskSchema = new mongoose.Schema(
     endDate: { type: String },
     notes: { type: String },
     images: [{ type: String }],
+    inspections: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

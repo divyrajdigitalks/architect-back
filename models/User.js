@@ -28,6 +28,8 @@ const userSchema = new mongoose.Schema(
     joinDate: { type: String },
     assignedProjects: [{ type: mongoose.Schema.Types.ObjectId, ref: "Project" }],
     isActive: { type: Boolean, default: true },
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
   },
   { timestamps: true }
 );
